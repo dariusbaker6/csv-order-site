@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Crypto Data – Pro CSV Packages</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+  <header class="container">
+    <div class="brand">
+      <img src="img/logo.svg" alt="Logo" width="28" height="28"/>
+      <span>Bindi Data</span>
+    </div>
+    <nav>
+      <a href="#pricing">Pricing</a>
+      <a href="terms.html">Terms</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="mailto:support@example.com">Support</a>
+    </nav>
+  </header>
+
+  <section class="hero container">
+    <h1>Clean Crypto Market CSVs for Pros</h1>
+    <p>Swaps, window metrics, token state, and price snapshots. Ready to download, production‑clean.</p>
+    <a class="cta" href="#pricing">See pricing</a>
+  </section>
+
+  <section id="pricing" class="container cards">
+    <div class="card">
+      <h3>Basic</h3>
+      <p class="price">$999 / mo</p>
+      <ul>
+        <li>Tokens, Creators</li>
+        <li>Daily snapshot</li>
+      </ul>
+      <button data-package="basic" class="buy-btn">Buy Basic</button>
+    </div>
+    <div class="card featured">
+      <h3>Pro</h3>
+      <p class="price">$3,000–$7,500 / mo</p>
+      <ul>
+        <li>+ Swaps (7d), Window Metrics</li>
+        <li>Token State (latest), Price Snapshots (48h)</li>
+        <li>Daily or On‑Demand at purchase</li>
+      </ul>
+      <button data-package="pro" class="buy-btn">Buy Pro</button>
+    </div>
+    <div class="card">
+      <h3>Enterprise</h3>
+      <p class="price">Let’s talk</p>
+      <ul>
+        <li>Custom history & OHLCV</li>
+        <li>S3/Snowflake delivery</li>
+      </ul>
+      <button data-package="enterprise" class="buy-btn">Contact Sales</button>
+    </div>
+  </section>
+
+  <!-- Modal -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-card">
+      <button id="closeModal" class="close">×</button>
+      <h3>Checkout</h3>
+      <p>Enter your email and choose a package.</p>
+      <form id="orderForm">
+        <input type="email" name="email" id="email" placeholder="you@fund.com" required/>
+        <select name="package" id="package">
+          <option value="basic">Basic</option>
+          <option value="pro" selected>Pro</option>
+          <option value="enterprise">Enterprise</option>
+        </select>
+        <button type="submit">Continue</button>
+      </form>
+      <p id="formMsg" class="msg"></p>
+    </div>
+  </div>
+
+  <footer class="container footer">
+    <small>© <span id="year"></span> Bindi Data — Clean crypto market datasets.</small>
+  </footer>
+
+<script>
+// 1) open/close modal
+const modal = document.getElementById('modal');
+const buyBtns = document.querySelectorAll('.buy-btn');
+const closeBtn = document.getElementById('closeModal');
+const pkgSelect = document.getElementById('package');
+buyBtns.forEach(btn => btn.addEventListener('click', () => {
+  const p = btn.dataset.package || 'pro';
+  pkgSelect.value = p;
+  modal.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}));
+closeBtn.addEventListener('click', () => {
+  modal.classList.add('hidden');
+  document.body.style.overflow = '';
+});
+
+// 2) order form submit → Zapier webhook (later) or mailto fallback
+const form = document.getElementById('orderForm');
+const msg = document.getElementById('formMsg');
+
+// TODO: replace with your Zapier Webhook URL when ready:
+const ZAPIER_HOOK_URL = ""; // e.g., https://hooks.zapier.com/hooks/catch/xxx/yyy
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  msg.textContent = "Submitting...";
+  const payload = {
+    email: document.getElementById('email').value.trim(),
+    package: document.getElementById('package').value
+  };
+  if (!ZAPIER_HOOK_URL) {
+    // Mailto fallback so you can test before Zapier
+    window.location.href = `mailto:sales@example.com?subject=Order:%20${payload.package}&body=${encodeURIComponent(JSON.stringify(payload, null, 2))}`;
+    msg.textContent = "Opening your email client...";
+    return;
+  }
+  try {
+    // send without waiting on CORS (Zapier will receive it)
+    await fetch(ZAPIER_HOOK_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    msg.textContent = "Check your inbox for the invoice link.";
+    form.reset();
+  } catch (err) {
+    console.error(err);
+    msg.textContent = "Something went wrong. Email sales@example.com";
+  }
+});
+
+// 3) year
+document.getElementById('year').textContent = new Date().getFullYear();
+</script>
+</body>
+</html>
